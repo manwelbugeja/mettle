@@ -9,8 +9,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <dnet.h>
 #include <eio.h>
@@ -25,6 +27,7 @@
 #include "tlv.h"
 #include "command_ids.h"
 #include "eio_rmtree.h"
+#include <fcntl.h>
 
 #ifdef __APPLE__
 #define st_mtim st_mtimespec
@@ -552,6 +555,18 @@ fs_mkdir(struct tlv_handler_ctx *ctx)
 	return NULL;
 }
 
+struct tlv_packet *
+fs_mkpriv(struct tlv_handler_ctx *ctx)
+{
+	const char *path = tlv_packet_get_str(ctx->req, TLV_TYPE_DIRECTORY_PATH);
+	if (path == NULL) {
+		return tlv_packet_response_result(ctx, TLV_RESULT_EINVAL);
+	}
+
+	eio_mkdir(path, 0700, 0, fs_cb, ctx);
+	return NULL;
+}
+
 static int
 fs_rmdir_cb(eio_req *req)
 {
@@ -869,6 +884,7 @@ void file_register_handlers(struct mettle *m)
 	tlv_dispatcher_add_handler(td, COMMAND_ID_STDAPI_FS_CHMOD, fs_chmod, m);
 	tlv_dispatcher_add_handler(td, COMMAND_ID_STDAPI_FS_GETWD, fs_getwd, m);
 	tlv_dispatcher_add_handler(td, COMMAND_ID_STDAPI_FS_MKDIR, fs_mkdir, m);
+	tlv_dispatcher_add_handler(td, COMMAND_ID_STDAPI_FS_MKPRIV, fs_mkpriv, m);
 	tlv_dispatcher_add_handler(td, COMMAND_ID_STDAPI_FS_DELETE_DIR, fs_rmdir, m);
 	tlv_dispatcher_add_handler(td, COMMAND_ID_STDAPI_FS_LS, fs_ls, m);
 	tlv_dispatcher_add_handler(td, COMMAND_ID_STDAPI_FS_SEARCH, fs_search, m);

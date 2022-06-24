@@ -19,3 +19,6 @@ build
 pkg/
 mettle.xcodeproj
 Gemfile.lock
+musl-cross-osx-6.tar.xz
+tags
+build/
